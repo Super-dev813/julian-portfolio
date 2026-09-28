@@ -4,6 +4,9 @@
 set -euo pipefail
 
 REPO_URL="$(git remote get-url origin)"
+AUTHOR_NAME="$(git config user.name)"
+AUTHOR_EMAIL="$(git config user.email)"
+SOURCE_SHA="$(git rev-parse --short HEAD)"
 SITE_URL="https://super-dev813.github.io/julian-portfolio"
 BASE_PATH="/julian-portfolio"
 
@@ -14,7 +17,6 @@ touch out/.nojekyll # otherwise Pages' Jekyll step drops the _next/ folder
 cd out
 git init -q -b gh-pages
 git add -A
-git -c user.name="$(git -C .. config user.name)" -c user.email="$(git -C .. config user.email)" \
-  commit -q -m "deploy: $(git -C .. rev-parse --short HEAD)"
+git -c user.name="$AUTHOR_NAME" -c user.email="$AUTHOR_EMAIL" commit -q -m "deploy: $SOURCE_SHA"
 git push -q -f "$REPO_URL" gh-pages
-echo "Published $(git -C .. rev-parse --short HEAD) to $SITE_URL/"
+echo "Published $SOURCE_SHA to $SITE_URL/"
