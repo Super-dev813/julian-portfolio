@@ -1,4 +1,5 @@
 import { Icons } from "@/components/icons";
+import { asset } from "@/lib/asset";
 import type { ComponentType } from "react";
 
 type IconComponent = ComponentType<{ className?: string }>;
@@ -181,7 +182,7 @@ export const DATA: Profile = {
         { label: "Leadership", text: "Partnered with product and design to scope and sequence features, and mentored teammates through code reviews, pairing, and guidance on architecture and best practices." },
       ],
       pictures: [
-        { src: "/companies/peaku.webp", alt: "PeakU's public job board listing open roles across Colombia", label: "peaku.co/jobs" },
+        { src: asset("/companies/peaku.webp"), alt: "PeakU's public job board listing open roles across Colombia", label: "peaku.co/jobs" },
       ],
     },
     {
@@ -202,8 +203,8 @@ export const DATA: Profile = {
         { label: "Production ownership", text: "Triaged incidents, performed root-cause analysis, and shipped fixes and hardening improvements for live client systems." },
       ],
       pictures: [
-        { src: "/projects/manhattan.webp", alt: "Manhattan Associates' public homepage, a Cognox client Julián built React UI for", label: "manh.com" },
-        { src: "/projects/airrange.webp", alt: "Airrange's public homepage, a Cognox client Julián built React UI for", label: "airrange.io" },
+        { src: asset("/projects/manhattan.webp"), alt: "Manhattan Associates' public homepage, a Cognox client Julián built React UI for", label: "manh.com" },
+        { src: asset("/projects/airrange.webp"), alt: "Airrange's public homepage, a Cognox client Julián built React UI for", label: "airrange.io" },
       ],
     },
     {
@@ -223,7 +224,7 @@ export const DATA: Profile = {
         { label: "Engineering practice", text: "Contributed to unit and integration testing, debugging, code reviews, deployments, and production support, progressively taking on larger feature ownership." },
       ],
       pictures: [
-        { src: "/companies/personalsoft.webp", alt: "PersonalSoft's public homepage: 'We make it happen'", label: "personalsoft.com" },
+        { src: asset("/companies/personalsoft.webp"), alt: "PersonalSoft's public homepage: 'We make it happen'", label: "personalsoft.com" },
       ],
     },
   ],
@@ -248,7 +249,7 @@ export const DATA: Profile = {
         "Assessment platform delivering 500+ technical and psychometric tests with real-time anti-cheat monitoring, automated scoring, and benchmarking. Moved grading and monitoring events onto serverless queues to keep the candidate UI responsive under load, with Python services for scoring and LLM-assisted evaluation under cost and latency safeguards.",
       technologies: ["React", "Node.js", "Python", "AWS Lambda / SQS"],
       image: {
-        src: "/projects/peaku-assessments.webp",
+        src: asset("/projects/peaku-assessments.webp"),
         alt: "PeakU's public assessments page, showing candidate cards scored on IQ, technical, cultural-fit, and English tests",
         domain: "peaku.co/candidate-assessments",
       },
@@ -261,7 +262,7 @@ export const DATA: Profile = {
         "Backend services connecting the applicant tracking system with an AI sourcing agent, LinkedIn-based candidate discovery, and WhatsApp outreach. Prompt orchestration, retry and fallback handling, and Redis caching made AI-driven matching reliable in production, with Datadog and Sentry monitoring latency, errors, and spend.",
       technologies: ["Python (FastAPI)", "Node.js", "LLM APIs", "Redis"],
       image: {
-        src: "/projects/peaku-matching.webp",
+        src: asset("/projects/peaku-matching.webp"),
         alt: "PeakU's public homepage, headlined 'Where the right match happens'",
         domain: "peaku.co",
       },
@@ -275,7 +276,7 @@ export const DATA: Profile = {
       technologies: ["React"],
       href: "https://www.manh.com",
       image: {
-        src: "/projects/manhattan.webp",
+        src: asset("/projects/manhattan.webp"),
         alt: "Manhattan Associates' public homepage introducing the Manhattan Active platform",
         domain: "manh.com",
       },
@@ -289,7 +290,7 @@ export const DATA: Profile = {
       technologies: ["React"],
       href: "https://airrange.io",
       image: {
-        src: "/projects/airrange.webp",
+        src: asset("/projects/airrange.webp"),
         alt: "Airrange's public homepage showing a spreadsheet turned into web and mobile app screens",
         domain: "airrange.io",
       },
@@ -312,7 +313,7 @@ export const DATA: Profile = {
       start: "2013",
       end: "2018",
       location: "Medellín, Colombia",
-      picture: { src: "/companies/udea.webp", alt: "The University of Antioquia's public homepage", label: "udea.edu.co" },
+      picture: { src: asset("/companies/udea.webp"), alt: "The University of Antioquia's public homepage", label: "udea.edu.co" },
     },
   ],
 };

@@ -21,13 +21,14 @@ const signature = Mrs_Saint_Delafield({ subsets: ["latin"], weight: "400", varia
 const display = Syne({ subsets: ["latin"], weight: ["700"], variable: "--font-name" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
+  // Origin only: Next adds the deploy base path to metadata images itself.
+  metadataBase: new URL(new URL(SITE_URL).origin),
   title: {
     default: `${DATA.name} — ${DATA.title}`,
     template: `%s | ${DATA.name}`,
   },
   description: DATA.description,
-  alternates: { canonical: "/" },
+  alternates: { canonical: `${SITE_URL}/` },
   openGraph: {
     title: `${DATA.name} — ${DATA.title}`,
     description: DATA.description,

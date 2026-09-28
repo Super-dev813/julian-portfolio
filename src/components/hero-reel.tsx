@@ -1,5 +1,6 @@
 "use client";
 
+import { asset } from "@/lib/asset";
 import { cn } from "@/lib/utils";
 import { Pause, Play } from "lucide-react";
 import { AnimatePresence, animate, motion, useReducedMotion } from "motion/react";
@@ -103,8 +104,8 @@ export function HeroReel({ intro, actions }: { intro: React.ReactNode; actions: 
               ref={(node) => {
                 videoRefs.current[index] = node;
               }}
-              src={loaded.has(index) ? `/reel/${slide.id}.mp4` : undefined}
-              poster={`/reel/${slide.id}.webp`}
+              src={loaded.has(index) ? asset(`/reel/${slide.id}.mp4`) : undefined}
+              poster={asset(`/reel/${slide.id}.webp`)}
               muted
               loop
               playsInline
@@ -192,7 +193,7 @@ export function HeroReel({ intro, actions }: { intro: React.ReactNode; actions: 
             <span className="relative block aspect-[16/9] overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element -- tiny poster; next/image adds nothing here */}
               <img
-                src={`/reel/${SLIDES[next].id}.webp`}
+                src={asset(`/reel/${SLIDES[next].id}.webp`)}
                 alt=""
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />

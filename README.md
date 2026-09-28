@@ -17,9 +17,16 @@ All copy lives in `src/data/resume.tsx`. There is intentionally no résumé down
 
 ## Deploy
 
-Deployed on Vercel (Hobby). Every push to `main` redeploys. The canonical URL comes from
-`NEXT_PUBLIC_SITE_URL` when set, otherwise Vercel's production domain. Custom domain: add it under
-Project → Settings → Domains and follow the DNS records Vercel shows.
+Live on GitHub Pages at https://super-dev813.github.io/julian-portfolio/.
+
+To publish changes: `deploy/publish-pages.sh`. It builds a static export (`STATIC_EXPORT=1`) and
+pushes it to the `gh-pages` branch, which Pages serves.
+
+Automatic deploys on every push: move `deploy/github-pages-workflow.yml` to
+`.github/workflows/deploy.yml` (pushing it needs a token with the `workflow` scope:
+`gh auth refresh -s workflow`), then set repo → Settings → Pages → Source to "GitHub Actions".
+
+A normal `pnpm build` (no `STATIC_EXPORT`) still works for Vercel or `next start`.
 
 ## Credits
 
