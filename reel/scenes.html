@@ -1,0 +1,235 @@
+<!doctype html>
+<!--
+  Source for the hero videos. Each scene is a pure function of time: render(t) draws the frame
+  at t seconds, so frames can be captured one by one and encoded (see README.md).
+  Open with ?scene=build|ship|observe|products. Served from /public during rendering only.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=JetBrains+Mono:wght@400;500&display=block"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #0b0e14;
+        --surface: #121722;
+        --raised: #181e2a;
+        --line: #232a36;
+        --ivory: #ece6da;
+        --mist: #9098a6;
+        --gold: #c9a96e;
+        --sage: #9fc7a4;
+        --sky: #8fb6d9;
+        --clay: #d9a57a;
+        --dim: #5d6675;
+      }
+      * { box-sizing: border-box; margin: 0; }
+      html, body { width: 1280px; height: 720px; overflow: hidden; background: var(--ink); color: var(--ivory); font-family: Geist, sans-serif; }
+      #world { position: absolute; inset: 0; perspective: 1600px; }
+      #stage { position: absolute; inset: 0; transform-style: preserve-3d; }
+      .glow { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.35; background: var(--gold); }
+      .window { position: absolute; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: 0 40px 120px -30px rgba(0,0,0,.8); }
+      .bar { height: 38px; display: flex; align-items: center; gap: 8px; padding: 0 14px; border-bottom: 1px solid var(--line); background: var(--raised); }
+      .dot { width: 10px; height: 10px; border-radius: 50%; background: #2d3542; }
+      .tab { margin-left: 14px; font: 12px "JetBrains Mono", monospace; color: var(--mist); }
+      .mono { font-family: "JetBrains Mono", monospace; }
+      pre { font: 17px/1.75 "JetBrains Mono", monospace; white-space: pre; }
+      .k { color: var(--gold); } .s { color: var(--sage); } .f { color: var(--sky); } .n { color: var(--clay); } .c { color: var(--dim); } .p { color: var(--ivory); }
+      .caret { display: inline-block; width: 9px; height: 20px; background: var(--gold); vertical-align: -4px; }
+      .scene { display: none; }
+    </style>
+  </head>
+  <body>
+    <div id="world"><div id="stage"></div></div>
+    <script>
+      const DURATION = 6;
+      const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+      const ease = (x) => 1 - Math.pow(1 - clamp(x), 3);
+      const lerp = (a, b, x) => a + (b - a) * x;
+      const stage = document.getElementById("stage");
+      const params = new URLSearchParams(location.search);
+      const scene = params.get("scene") || "build";
+
+      // ---------- Build: a queue worker being written ----------
+      const CODE = [
+        [["c", "// queue/worker.ts: grade assessments off the request path"]],
+        [["k", "export async function "], ["f", "handleAssessments"], ["p", "(event: SQSEvent) {"]],
+        [["p", "  "], ["k", "for "], ["p", "(const record "], ["k", "of "], ["p", "event.Records) {"]],
+        [["p", "    "], ["k", "const "], ["p", "job = "], ["f", "parseJob"], ["p", "(record.body);"]],
+        [["p", "    "], ["k", "await "], ["f", "withRetry"], ["p", "(() => "], ["f", "grade"], ["p", "(job), {"]],
+        [["p", "      attempts: "], ["n", "3"], ["p", ","]],
+        [["p", "      backoffMs: (n) => "], ["n", "2"], ["p", " ** n * "], ["n", "200"], ["p", ","]],
+        [["p", "    });"]],
+        [["p", "    metrics."], ["f", "increment"], ["p", "("], ["s", '"assessment.graded"'], ["p", ");"]],
+        [["p", "  }"]],
+        [["p", "}"]],
+      ];
+      const escape = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+      function buildScene() {
+        stage.innerHTML = `
+          <div class="glow" style="width:520px;height:520px;left:620px;top:120px"></div>
+          <div class="window" id="editor" style="left:150px;top:110px;width:980px;height:500px">
+            <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="tab">queue/worker.ts</span></div>
+            <div style="display:flex;padding:22px 0">
+              <pre class="c" style="padding:0 22px 0 26px;text-align:right" id="gutter"></pre>
+              <pre id="code"></pre>
+            </div>
+          </div>`;
+        document.getElementById("gutter").textContent = CODE.map((_, i) => i + 1).join("\n");
+        const total = CODE.reduce((n, line) => n + line.reduce((m, [, text]) => m + text.length, 0) + 1, 0);
+        return (t) => {
+          const typed = Math.floor(clamp((t - 0.3) / 4.2) * total);
+          let left = typed, html = "";
+          for (const line of CODE) {
+            for (const [cls, text] of line) {
+              if (left <= 0) break;
+              const part = text.slice(0, left);
+              left -= part.length;
+              html += `<span class="${cls}">${escape(part)}</span>`;
+            }
+            if (left <= 0) break;
+            html += "\n";
+            left -= 1;
+          }
+          const blink = t > 4.6 ? Math.floor(t * 2.2) % 2 === 0 : true;
+          document.getElementById("code").innerHTML = html + (blink ? '<span class="caret"></span>' : "");
+          const x = ease(t / DURATION);
+          stage.style.transform = `translateZ(${lerp(-60, 40, x)}px) rotateY(${lerp(-10, -4, x)}deg) rotateX(${lerp(4, 2, x)}deg)`;
+        };
+      }
+
+      // ---------- Ship: tests pass, the pipeline deploys ----------
+      const TERMINAL = [
+        [0.3, '<span class="k">$</span> pnpm test'],
+        [0.9, '<span class="s">✓</span> api/auth.spec.ts'],
+        [1.2, '<span class="s">✓</span> queue/worker.spec.ts'],
+        [1.5, '<span class="s">✓</span> web/checkout.spec.tsx'],
+        [1.8, '<span class="s">✓</span> e2e/assessment.cy.ts'],
+        [2.2, '<span class="c">all suites passed</span>'],
+        [2.7, '<span class="k">$</span> git push origin main'],
+        [3.1, '<span class="c">→ CI pipeline started</span>'],
+      ];
+      const STAGES = [["Build", 3.4], ["Test", 3.9], ["Deploy", 4.5]];
+      function shipScene() {
+        stage.innerHTML = `
+          <div class="glow" style="width:460px;height:460px;left:760px;top:160px"></div>
+          <div class="window" style="left:110px;top:130px;width:660px;height:460px">
+            <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="tab">terminal</span></div>
+            <pre id="term" style="padding:24px 28px;font-size:18px;line-height:1.95"></pre>
+          </div>
+          <div class="window" style="left:820px;top:170px;width:350px;height:380px;padding:30px">
+            <div style="font-size:14px;color:var(--mist)">Pipeline</div>
+            <div id="stages" style="margin-top:26px;position:relative"></div>
+            <div id="live" style="margin-top:34px;display:inline-flex;align-items:center;gap:10px;padding:10px 16px;border-radius:999px;border:1px solid var(--gold);color:var(--gold);font-size:15px">
+              <span style="width:8px;height:8px;border-radius:50%;background:var(--gold)"></span>Live in production
+            </div>
+          </div>`;
+        return (t) => {
+          document.getElementById("term").innerHTML = TERMINAL.filter(([at]) => t >= at).map(([, line]) => line).join("\n");
+          document.getElementById("stages").innerHTML = STAGES.map(([name, at], i) => {
+            const on = clamp((t - at) / 0.35);
+            const color = on > 0.5 ? "var(--gold)" : "#2d3542";
+            return `<div style="display:flex;align-items:center;gap:16px;height:64px">
+                <span style="width:22px;height:22px;border-radius:50%;border:2px solid ${color};background:${on > 0.5 ? "var(--gold)" : "transparent"};box-shadow:0 0 ${on * 22}px ${on * 4}px rgba(201,169,110,.35)"></span>
+                <span style="font-size:20px;color:${on > 0.5 ? "var(--ivory)" : "var(--mist)"}">${name}</span>
+              </div>`;
+          }).join("");
+          const live = document.getElementById("live");
+          live.style.opacity = clamp((t - 4.9) / 0.4);
+          live.style.transform = `translateY(${(1 - clamp((t - 4.9) / 0.4)) * 10}px)`;
+          const x = ease(t / DURATION);
+          stage.style.transform = `translateZ(${lerp(-40, 50, x)}px) rotateY(${lerp(8, 3, x)}deg) rotateX(${lerp(3, 1, x)}deg)`;
+        };
+      }
+
+      // ---------- Observe: production dashboards, no invented numbers ----------
+      function series(seed, n, base, wiggle) {
+        let v = seed;
+        return Array.from({ length: n }, (_, i) => {
+          v = (v * 9301 + 49297) % 233280;
+          return base + Math.sin(i / 3 + seed) * wiggle + ((v / 233280) - 0.5) * wiggle * 0.8;
+        });
+      }
+      function path(values, w, h, range) {
+        const [min, max] = range ?? [Math.min(...values), Math.max(...values)];
+        return values.map((v, i) => `${i ? "L" : "M"}${(i / (values.length - 1)) * w},${h - ((v - min) / (max - min || 1)) * (h - 16) - 8}`).join(" ");
+      }
+      function observeScene() {
+        const panels = [
+          ["Requests", series(3, 40, 50, 18), "var(--gold)"],
+          ["Latency", series(7, 40, 30, 6), "var(--sky)"],
+          ["Errors", series(11, 40, 6, 3), "var(--sage)", [0, 100]],
+        ];
+        stage.innerHTML = `
+          <div class="glow" style="width:520px;height:420px;left:380px;top:240px;opacity:.22"></div>
+          <div class="window" style="left:90px;top:90px;width:1100px;height:540px;padding:26px 30px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div style="font-size:15px;color:var(--mist)">Production</div>
+              <div style="display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--gold)"><span style="width:8px;height:8px;border-radius:50%;background:var(--gold)"></span>All systems normal</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:22px">
+              ${panels.map(([name, values, color, range], i) => `
+                <div style="background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:18px">
+                  <div style="font-size:14px;color:var(--mist)">${name}</div>
+                  <svg viewBox="0 0 300 150" style="width:100%;height:150px;margin-top:10px;overflow:visible">
+                    <path d="${path(values, 300, 150, range)}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" pathLength="1" stroke-dasharray="1" id="chart${i}"/>
+                  </svg>
+                </div>`).join("")}
+            </div>
+            <div style="margin-top:22px;background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:18px">
+              <div style="font-size:14px;color:var(--mist)">Traces</div>
+              <div id="bars" style="display:flex;gap:6px;align-items:flex-end;height:96px;margin-top:14px"></div>
+            </div>
+            <div id="scan" style="position:absolute;top:70px;bottom:20px;width:1px;background:linear-gradient(transparent,var(--gold),transparent);opacity:.5"></div>
+          </div>`;
+        const heights = series(5, 60, 50, 30).map((h) => clamp(h / 100, 0.12, 1));
+        return (t) => {
+          panels.forEach((_, i) => {
+            document.getElementById(`chart${i}`).style.strokeDashoffset = 1 - ease((t - 0.3 - i * 0.35) / 2.6);
+          });
+          document.getElementById("bars").innerHTML = heights.map((h, i) => {
+            const on = clamp((t - 1 - i * 0.03) / 0.4);
+            return `<span style="flex:1;height:${h * 100 * on}%;border-radius:3px;background:${i % 9 === 4 ? "var(--gold)" : "#2d3542"}"></span>`;
+          }).join("");
+          document.getElementById("scan").style.left = `${30 + ((t * 170) % 1040)}px`;
+          const x = ease(t / DURATION);
+          stage.style.transform = `translateZ(${lerp(-80, 30, x)}px) rotateY(${lerp(-4, 4, x)}deg) rotateX(${lerp(6, 3, x)}deg)`;
+        };
+      }
+
+      // ---------- Products: the live products, gliding past ----------
+      const SHOTS = [
+        ["/projects/peaku-assessments.webp", "peaku.co"],
+        ["/projects/manhattan.webp", "manh.com"],
+        ["/projects/airrange.webp", "airrange.io"],
+        ["/projects/peaku-matching.webp", "peaku.co"],
+      ];
+      function productsScene() {
+        stage.innerHTML = SHOTS.map(([src, label], i) => `
+          <div class="window shot" style="width:620px;height:386px">
+            <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="tab">${label}</span></div>
+            <img src="${src}" style="display:block;width:100%;height:348px;object-fit:cover;object-position:top">
+          </div>`).join("") + '<div class="glow" style="width:600px;height:400px;left:340px;top:200px;opacity:.18"></div>';
+        const shots = [...document.querySelectorAll(".shot")];
+        return (t) => {
+          const x = ease(t / DURATION);
+          shots.forEach((el, i) => {
+            const slot = i - lerp(0.2, 2.2, x);
+            el.style.left = `${330 + slot * 430}px`;
+            el.style.top = `${170 + Math.abs(slot) * 30}px`;
+            el.style.transform = `translateZ(${-Math.abs(slot) * 260}px) rotateY(${slot * -26}deg)`;
+            el.style.opacity = clamp(1.4 - Math.abs(slot) * 0.45, 0, 1);
+            el.style.zIndex = String(10 - Math.round(Math.abs(slot) * 2));
+          });
+        };
+      }
+
+      const draw = { build: buildScene, ship: shipScene, observe: observeScene, products: productsScene }[scene]();
+      window.render = draw;
+      window.DURATION = DURATION;
+      draw(Number(params.get("t") || 0));
+    </script>
+  </body>
+</html>
