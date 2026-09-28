@@ -3,7 +3,7 @@
 import { asset } from "@/lib/asset";
 import { cn } from "@/lib/utils";
 import { Pause, Play } from "lucide-react";
-import { AnimatePresence, animate, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, animate, motion, useInView, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /** Rendered from reel/scenes.html; the lines restate résumé facts, nothing more. */
@@ -19,10 +19,11 @@ const EXPAND_S = 1.15;
 const EASE = [0.76, 0, 0.24, 1] as const;
 
 /**
- * Cole Haan-style reel: full-bleed videos behind the hero, numbered chapters bottom-left, and a
- * preview of the next video bottom-right that expands to fill the screen when the slide changes.
+ * Cole Haan-style showreel: full-bleed videos, numbered chapters bottom-left, and a preview of the
+ * next video bottom-right that expands to fill the screen when the slide changes. Nothing downloads
+ * or plays until the section is near the viewport.
  */
-export function HeroReel({ intro, actions }: { intro: React.ReactNode; actions: React.ReactNode }) {
+export function Showreel({ intro, actions }: { intro: React.ReactNode; actions?: React.ReactNode }) {
   const [active, setActive] = useState(0);
   const [incoming, setIncoming] = useState<number | null>(null);
   const [paused, setPaused] = useState(false);
@@ -32,9 +33,10 @@ export function HeroReel({ intro, actions }: { intro: React.ReactNode; actions: 
   const previewRef = useRef<HTMLButtonElement>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const near = useInView(sectionRef, { margin: "300px 0px" });
   const count = SLIDES.length;
   const next = (active + 1) % count;
-  const autoplay = !paused && !reduceMotion && incoming === null;
+  const autoplay = near && !paused && !reduceMotion && incoming === null;
 
   const goTo = useCallback(
     (target: number) => {
@@ -77,10 +79,10 @@ export function HeroReel({ intro, actions }: { intro: React.ReactNode; actions: 
     videoRefs.current.forEach((video, index) => {
       if (!video) return;
       const visible = index === active || index === incoming;
-      if (visible && !paused && !reduceMotion) void video.play().catch(() => {});
+      if (visible && near && !paused && !reduceMotion) void video.play().catch(() => {});
       else video.pause();
     });
-  }, [active, incoming, paused, reduceMotion, loaded]);
+  }, [active, incoming, paused, reduceMotion, loaded, near]);
 
   const shown = incoming ?? active;
 
@@ -104,12 +106,12 @@ export function HeroReel({ intro, actions }: { intro: React.ReactNode; actions: 
               ref={(node) => {
                 videoRefs.current[index] = node;
               }}
-              src={loaded.has(index) ? asset(`/reel/${slide.id}.mp4`) : undefined}
+              src={near && loaded.has(index) ? asset(`/reel/${slide.id}.mp4`) : undefined}
               poster={asset(`/reel/${slide.id}.webp`)}
               muted
               loop
               playsInline
-              preload={loaded.has(index) ? "auto" : "none"}
+              preload={near && loaded.has(index) ? "auto" : "none"}
               className="h-full w-full scale-105 object-cover blur-[1.5px] brightness-[0.8]"
             />
           </div>
@@ -171,16 +173,15 @@ export function HeroReel({ intro, actions }: { intro: React.ReactNode; actions: 
                 );
               })}
             </ol>
-            {!reduceMotion && (
-              <button
-                type="button"
-                aria-label={paused ? "Play the reel" : "Pause the reel"}
-                onClick={() => setPaused((value) => !value)}
-                className="inline-flex size-9 items-center justify-center rounded-full border border-input text-muted-foreground transition-colors hover:border-brand hover:text-brand"
-              >
-                {paused ? <Play className="size-3.5" aria-hidden /> : <Pause className="size-3.5" aria-hidden />}
-              </button>
-            )}
+            {/* Hidden by CSS, not a JS branch: the server can't know the motion preference. */}
+            <button
+              type="button"
+              aria-label={paused ? "Play the reel" : "Pause the reel"}
+              onClick={() => setPaused((value) => !value)}
+              className="inline-flex size-9 items-center justify-center rounded-full border border-input text-muted-foreground transition-colors hover:border-brand hover:text-brand motion-reduce:hidden"
+            >
+              {paused ? <Play className="size-3.5" aria-hidden /> : <Pause className="size-3.5" aria-hidden />}
+            </button>
           </div>
 
           <button

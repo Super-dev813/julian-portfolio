@@ -6,7 +6,7 @@ import { RevealText } from "@/components/motion/reveal-text";
 import { DATA, type Picture, type Work } from "@/data/resume";
 import { cn } from "@/lib/utils";
 import { ArrowUpRight, Plus } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring } from "motion/react";
+import { AnimatePresence, motion, useInView, useReducedMotion, useScroll, useSpring } from "motion/react";
 import Image from "next/image";
 import { useId, useRef, useState } from "react";
 
@@ -27,6 +27,25 @@ function Pictures({ pictures, caption }: { pictures: readonly Picture[]; caption
   );
 }
 
+function TimelineDot({ muted = false }: { muted?: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const reached = useInView(ref, { once: true, margin: "0px 0px -45% 0px" });
+  const reduceMotion = useReducedMotion();
+  return (
+    <motion.span
+      ref={ref}
+      aria-hidden
+      initial={false}
+      animate={reached && !reduceMotion ? { scale: [1, 1.6, 1] } : { scale: 1 }}
+      transition={{ duration: 0.6, ease: [0.2, 0.7, 0.1, 1] }}
+      className={cn(
+        "absolute left-0 top-2 size-[15px] rounded-full border transition-[background-color,border-color,box-shadow] duration-500",
+        reached ? "border-brand bg-brand shadow-[0_0_0_6px_rgb(var(--glow)/0.15)]" : muted ? "border-input bg-background" : "border-brand bg-background"
+      )}
+    />
+  );
+}
+
 function Role({ work, defaultOpen }: { work: Work; defaultOpen: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   const reduceMotion = useReducedMotion();
@@ -34,7 +53,7 @@ function Role({ work, defaultOpen }: { work: Work; defaultOpen: boolean }) {
 
   return (
     <li className="relative pb-20 pl-12 last:pb-0">
-      <span aria-hidden className="absolute left-0 top-2 size-[15px] rounded-full border border-brand bg-background" />
+      <TimelineDot />
       <Reveal>
       <p className="flex flex-wrap gap-x-5 text-sm tabular-nums text-muted-foreground">
         <span>
@@ -91,7 +110,6 @@ function Role({ work, defaultOpen }: { work: Work; defaultOpen: boolean }) {
 
 export default function ExperienceSection() {
   const listRef = useRef<HTMLOListElement>(null);
-  const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: listRef, offset: ["start 75%", "end 55%"] });
   const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 30 });
   const education = DATA.education[0];
@@ -119,16 +137,17 @@ export default function ExperienceSection() {
       </div>
       <ol ref={listRef} className="relative md:col-span-8">
         <span aria-hidden className="absolute bottom-2 left-[7px] top-2 w-px bg-border" />
+        {/* Scroll-drawn line; reduced motion shows it fully drawn via CSS (no server/client branch). */}
         <motion.span
           aria-hidden
-          style={{ scaleY: reduceMotion ? 1 : progress }}
-          className="absolute bottom-2 left-[7px] top-2 w-px origin-top bg-brand"
+          style={{ scaleY: progress }}
+          className="absolute bottom-2 left-[7px] top-2 w-px origin-top bg-brand motion-reduce:transform-none!"
         />
         {DATA.work.map((work, index) => (
           <Role key={work.company} work={work} defaultOpen={index === 0} />
         ))}
         <li className="relative pl-12">
-          <span aria-hidden className="absolute left-0 top-2 size-[15px] rounded-full border border-input bg-background" />
+          <TimelineDot muted />
           <Reveal>
           <p className="flex flex-wrap gap-x-5 text-sm tabular-nums text-muted-foreground">
             <span>

@@ -18,7 +18,8 @@ export function ProjectShowcase({ project, flip }: { project: Project; flip: boo
 
   // Parallax: the picture drifts inside its frame as the row crosses the viewport.
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const drift = useTransform(scrollYProgress, [0, 1], reduceMotion ? ["0%", "0%"] : ["-2.5%", "2.5%"]);
+  // Same values on server and client; reduced motion cancels the transform in CSS instead.
+  const drift = useTransform(scrollYProgress, [0, 1], ["-2.5%", "2.5%"]);
 
   // Tilt: the frame leans toward a hovering mouse.
   const spring = { stiffness: 150, damping: 18 };
@@ -49,7 +50,7 @@ export function ProjectShowcase({ project, flip }: { project: Project; flip: boo
           <motion.div style={{ rotateX, rotateY }} onPointerMove={handleMove} onPointerLeave={reset} className="group/frame" data-cursor={project.href ? "Visit" : undefined}>
             <BrowserFrame label={frameLabel} className="transition-colors duration-500 group-hover/frame:border-brand/40">
               <div className="relative aspect-[16/9] overflow-hidden">
-                <motion.div style={{ y: drift, scale: 1.06 }} className="absolute inset-0">
+                <motion.div style={{ y: drift, scale: 1.06 }} className="absolute inset-0 motion-reduce:transform-none!">
                   {project.image ? (
                     <Image
                       src={project.image.src}

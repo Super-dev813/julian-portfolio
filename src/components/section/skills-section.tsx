@@ -1,3 +1,4 @@
+import { Cascade } from "@/components/motion/cascade";
 import { Reveal } from "@/components/motion/reveal";
 import { RevealText } from "@/components/motion/reveal-text";
 import { DATA } from "@/data/resume";
@@ -15,7 +16,7 @@ export default function SkillsSection() {
         {DATA.skills.map((group, index) => (
           <Reveal key={group.group} delay={(index % 2) * 0.08} className="border-t border-border pt-5">
             <dt className="text-sm text-brand">{group.group}</dt>
-            <dd className="mt-3 text-pretty leading-relaxed text-foreground/90">{group.items.join(", ")}</dd>
+            <Cascade items={group.items} className="mt-3 text-pretty leading-relaxed text-foreground/90" />
           </Reveal>
         ))}
       </dl>

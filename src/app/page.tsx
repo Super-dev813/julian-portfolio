@@ -5,6 +5,7 @@ import ContactSection from "@/components/section/contact-section";
 import ExperienceSection from "@/components/section/experience-section";
 import HeroSection from "@/components/section/hero-section";
 import ProjectsSection from "@/components/section/projects-section";
+import ShowreelSection from "@/components/section/showreel-section";
 import SkillsSection from "@/components/section/skills-section";
 import TestimonialsSection from "@/components/section/testimonials-section";
 import { DATA } from "@/data/resume";
@@ -28,6 +29,7 @@ export default function Page() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }} />
       <HeroSection />
       <AboutSection />
+      <ShowreelSection />
       <StackMarquee />
       <ProjectsSection />
       <ExperienceSection />

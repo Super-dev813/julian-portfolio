@@ -18,7 +18,7 @@ const instrumentSerif = Instrument_Serif({
   variable: "--font-serif",
 });
 const signature = Mrs_Saint_Delafield({ subsets: ["latin"], weight: "400", variable: "--font-sign" });
-const display = Syne({ subsets: ["latin"], weight: ["700"], variable: "--font-name" });
+const display = Syne({ subsets: ["latin"], weight: ["700", "800"], variable: "--font-name" });
 
 export const metadata: Metadata = {
   // Origin only: Next adds the deploy base path to metadata images itself.
